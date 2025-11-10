@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企业礼品接龙选择系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    // Tailwind 配置
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2D8CF0',
+            secondary: '#1E40AF',
+            success: '#00B42A',
+            warning: '#FF7D00',
+            danger: '#F53F3F',
+            light: '#F2F3F5',
+            dark: '#1D2129'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .card-shadow {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .transition-smooth {
+        transition: all 0.3s ease;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-dark">
+  <!-- 页面容器 -->
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- 头部标题 -->
+    <header class="text-center mb-8">
+      <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-primary mb-2">
+        <i class="fa fa-gift mr-2"></i>礼品接龙选择系统
+      </h1>
+      <p class="text-gray-600">按排名顺序选择心仪的礼品</p>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main>
+      <!-- 初始登录/身份选择界面 -->
+      <section id="authSection" class="block">
+        <div class="bg-white rounded-xl p-8 card-shadow">
+          <h2 class="text-xl font-semibold mb-6 text-center">请选择您的身份</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button id="adminBtn" class="flex flex-col items-center justify-center p-6 border-2 border-primary rounded-lg hover:bg-primary/5 transition-smooth cursor-pointer">
+              <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-cogs text-primary text-2xl"></i>
+              </div>
+              <span class="font-medium text-lg">管理员</span>
+              <span class="text-sm text-gray-500 mt-1">设置奖品和排名</span>
+            </button>
+            
+            <button id="participantBtn" class="flex flex-col items-center justify-center p-6 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-smooth cursor-pointer">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-user text-gray-500 text-2xl"></i>
+              </div>
+              <span class="font-medium text-lg">参与者</span>
+              <span class="text-sm text-gray-500 mt-1">选择心仪的礼品</span>
+            </button>
+          </div>
+
+          <div id="adminAuth" class="mt-8 hidden">
+            <h3 class="text-lg font-medium mb-4">管理员验证</h3>
+            <div class="mb-4">
+              <label for="adminPassword" class="block text-sm font-medium text-gray-700 mb-1">请输入管理员密码</label>
+              <input type="password" id="adminPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-smooth" placeholder="输入密码">
+            </div>
+            <button id="loginAdminBtn" class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-smooth">
+              登录管理员
+            </button>
+          </div>
+
+          <div id="participantAuth" class="mt-8 hidden">
+            <h3 class="text-lg font-medium mb-4">参与者信息</h3>
+            <div class="mb-4">
+              <label for="participantName" class="block text-sm font-medium text-gray-700 mb-1">请输入您的姓名</label>
+              <input type="text" id="participantName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-smooth" placeholder="输入姓名">
+            </div>
+            <button id="loginParticipantBtn" class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-smooth">
+              进入选择系统
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 管理员界面 -->
+      <section id="adminSection" class="hidden">
+        <div class="bg-white rounded-xl p-6 mb-6 card-shadow">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">
+              <i class="fa fa-cogs text-primary mr-2"></i>管理员面板
+            </h2>
+            <button id="logoutAdminBtn" class="text-gray-500 hover:text-danger transition-smooth">
+              <i class="fa fa-sign-out mr-1"></i>退出
+            </button>
+          </div>
+
+          <!-- 奖品管理 -->
+          <div class="mb-8">
+            <h3 class="text-lg font-medium mb-4 pb-2 border-b border-gray-100">奖品管理</h3>
+            
+            <div id="prizeForm" class="mb-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label for="prizeName" class="block text-sm font-medium text-gray-700 mb-1">奖品名称</label>
+                  <input type="text" id="prizeName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-smooth" placeholder="输入奖品名称">
+                </div>
+                <div>
+                  <label for="prizeQuantity" class="block text-sm font-medium text-gray-700 mb-1">奖品数量</label>
+                  <input type="number" id="prizeQuantity" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-smooth">
+                </div>
+                <div class="flex items-end">
+                  <button id="addPrizeBtn" class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-smooth">
+                    <i class="fa fa-plus mr-1"></i>添加奖品
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-medium mb-3">已添加的奖品</h4>
+              <div id="prizeList" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                <!-- 奖品列表将动态生成 -->
+                <div class="text-gray-500 text-center py-6 border border-dashed rounded-lg">
+                  暂无奖品，请添加奖品
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 排名管理 -->
+          <div class="mb-8">
+            <h3 class="text-lg font-medium mb-4 pb-2 border-b border-gray-100">排名管理</h3>
+            
+            <div id="rankForm" class="mb-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label for="rankPosition" class="block text-sm font-medium text-gray-700 mb-1">排名</label>
+                  <input type="number" id="rankPosition" min="1" value="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-smooth">
+                </div>
+                <div>
+                  <label for="rankName" class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                  <input type="text" id="rankName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-smooth" placeholder="输入姓名">
+                </div>
+                <div class="flex items-end">
+                  <button id="addRankBtn" class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-secondary transition-smooth">
+                    <i class="fa fa-plus mr-1"></i>添加排名
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-medium mb-3">已添加的排名</h4>
+              <div id="rankList" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                <!-- 排名列表将动态生成 -->
+                <div class="text-gray-500 text-center py-6 border border-dashed rounded-lg">
+                  暂无排名，请添加排名
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 开始选择 -->
+          <div class="text-center pt-4 border-t border-gray-100">
+            <button id="startSelectionBtn" class="bg-success text-white py-3 px-8 rounded-lg hover:bg-success/90 transition-smooth text-lg font-medium">
+              <i class="fa fa-play-circle mr-2"></i>开始礼品选择
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 参与者界面 -->
+      <section id="participantSection" class="hidden">
+        <div class="bg-white rounded-xl p-6 mb-6 card-shadow">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">
+              <i class="fa fa-gift text-primary mr-2"></i>礼品选择
+            </h2>
+            <div>
+              <span id="currentParticipantName" class="mr-4 text-gray-600"></span>
+              <button id="logoutParticipantBtn" class="text-gray-500 hover:text-danger transition-smooth">
+                <i class="fa fa-sign-out mr-1"></i>退出
+              </button>
+            </div>
+          </div>
+
+          <!-- 当前选择状态 -->
+          <div id="selectionStatus" class="mb-6 p-4 bg-light rounded-lg">
+            <h3 class="font-medium mb-2 flex items-center">
+              <i class="fa fa-info-circle text-primary mr-2"></i>当前选择状态
+            </h3>
+            <p id="statusMessage" class="text-gray-600">等待管理员开始选择流程...</p>
+          </div>
+
+          <!-- 礼品选择区 -->
+          <div id="prizeSelectionArea" class="mb-6 hidden">
+            <h3 class="font-medium mb-4">请选择您心仪的礼品</h3>
+            <div id="availablePrizes" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- 可选礼品将动态生成 -->
+            </div>
+          </div>
+
+          <!-- 已选礼品列表 -->
+          <div>
+            <h3 class="font-medium mb-4">已选择的礼品</h3>
+            <div id="selectedPrizes" class="space-y-2 max-h-40 overflow-y-auto pr-2">
+              <div class="text-gray-500 text-center py-4 border border-dashed rounded-lg">
+                暂无选择记录
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 进度展示面板 -->
+      <section id="progressPanel" class="bg-white rounded-xl p-6 card-shadow hidden">
+        <h2 class="text-xl font-semibold mb-4">
+          <i class="fa fa-tasks text-primary mr-2"></i>选择进度
+        </h2>
+        <div class="space-y-2 max-h-60 overflow-y-auto pr-2">
+          <div id="progressList">
+            <!-- 进度列表将动态生成 -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+      <p>© 2023 企业礼品接龙选择系统 | 设计与开发</p>
+    </footer>
+  </div>
+
+  <!-- 通知弹窗 -->
+  <div id="notification" class="fixed top-4 right-4 p-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 flex items-center z-50 max-w-xs">
+    <i id="notificationIcon" class="mr-3 text-xl"></i>
+    <span id="notificationMessage"></span>
+  </div>
+
+  <script>
+    // 全局数据存储
+    const appData = {
+      adminPassword: 'admin123', // 默认管理员密码，实际使用中应修改
+      currentUser: null,
+      isAdmin: false,
+      prizes: [],
+      ranks: [],
+      selectionInProgress: false,
+      currentSelectorIndex: 0,
+      selectedPrizes: []
+    };
+
+    // DOM 元素引用
+    const elements = {
+      // 身份验证相关
+      authSection: document.getElementById('authSection'),
+      adminBtn: document.getElementById('adminBtn'),
+      participantBtn: document.getElementById('participantBtn'),
+      adminAuth: document.getElementById('adminAuth'),
+      participantAuth: document.getElementById('participantAuth'),
+      adminPassword: document.getElementById('adminPassword'),
+      loginAdminBtn: document.getElementById('loginAdminBtn'),
+      participantName: document.getElementById('participantName'),
+      loginParticipantBtn: document.getElementById('loginParticipantBtn'),
+      
+      // 管理员界面相关
+      adminSection: document.getElementById('adminSection'),
+      logoutAdminBtn: document.getElementById('logoutAdminBtn'),
+      prizeName: document.getElementById('prizeName'),
+      prizeQuantity: document.getElementById('prizeQuantity'),
+      addPrizeBtn: document.getElementById('addPrizeBtn'),
+      prizeList: document.getElementById('prizeList'),
+      rankPosition: document.getElementById('rankPosition'),
+      rankName: document.getElementById('rankName'),
+      addRankBtn: document.getElementById('addRankBtn'),
+      rankList: document.getElementById('rankList'),
+      startSelectionBtn: document.getElementById('startSelectionBtn'),
+      
+      // 参与者界面相关
+      participantSection: document.getElementById('participantSection'),
+      logoutParticipantBtn: document.getElementById('logoutParticipantBtn'),
+      currentParticipantName: document.getElementById('currentParticipantName'),
+      selectionStatus: document.getElementById('selectionStatus'),
+      statusMessage: document.getElementById('statusMessage'),
+      prizeSelectionArea: document.getElementById('prizeSelectionArea'),
+      availablePrizes: document.getElementById('availablePrizes'),
+      selectedPrizes: document.getElementById('selectedPrizes'),
+      
+      // 进度面板
+      progressPanel: document.getElementById('progressPanel'),
+      progressList: document.getElementById('progressList'),
+      
+      // 通知
+      notification: document.getElementById('notification'),
+      notificationIcon: document.getElementById('notificationIcon'),
+      notificationMessage: document.getElementById('notificationMessage')
+    };
+
+    // 显示通知
+    function showNotification(message, type = 'info') {
+      const iconClass = {
+        info: 'fa-info-circle text-primary',
+        success: 'fa-check-circle text-success',
+        error: 'fa-exclamation-circle text-danger',
+        warning: 'fa-exclamation-triangle text-warning'
+      };
+      
+      elements.notificationMessage.textContent = message;
+      elements.notificationIcon.className = `fa ${iconClass[type]} mr-3 text-xl`;
+      elements.notification.classList.remove('bg-primary/10', 'bg-success/10', 'bg-danger/10', 'bg-warning/10');
+      
+      switch(type) {
+        case 'success':
+          elements.notification.classList.add('bg-success/10');
+          break;
+        case 'error':
+          elements.notification.classList.add('bg-danger/10');
+          break;
+        case 'warning':
+          elements.notification.classList.add('bg-warning/10');
+          break;
+        default:
+          elements.notification.classList.add('bg-primary/10');
+      }
+      
+      elements.notification.classList.remove('translate-x-full');
+      
+      setTimeout(() => {
+        elements.notification.classList.add('translate-x-full');
+      }, 3000);
+    }
+
+    // 身份验证相关事件
+    elements.adminBtn.addEventListener('click', () => {
+      elements.adminAuth.classList.remove('hidden');
+      elements.participantAuth.classList.add('hidden');
+      elements.adminBtn.classList.add('border-primary', 'bg-primary/5');
+      elements.participantBtn.classList.remove('border-primary', 'bg-primary/5');
+      elements.participantBtn.classList.add('border-gray-200');
+    });
+
+    elements.participantBtn.addEventListener('click', () => {
+      elements.participantAuth.classList.remove('hidden');
+      elements.adminAuth.classList.add('hidden');
+      elements.participantBtn.classList.add('border-primary', 'bg-primary/5');
+      elements.adminBtn.classList.remove('border-primary', 'bg-primary/5');
+      elements.adminBtn.classList.add('border-gray-200');
+    });
+
+    elements.loginAdminBtn.addEventListener('click', () => {
+      const password = elements.adminPassword.value.trim();
+      if (!password) {
+        showNotification('请输入管理员密码', 'warning');
+        return;
+      }
+      
+      if (password === appData.adminPassword) {
+        appData.currentUser = '管理员';
+        appData.isAdmin = true;
+        elements.authSection.classList.add('hidden');
+        elements.adminSection.classList.remove('hidden');
+        showNotification('管理员登录成功', 'success');
+      } else {
+        showNotification('密码错误，请重新输入', 'error');
+      }
+    });
+
+    elements.loginParticipantBtn.addEventListener('click', () => {
+      const name = elements.participantName.value.trim();
+      if (!name) {
+        showNotification('请输入您的姓名', 'warning');
+        return;
+      }
+      
+      appData.currentUser = name;
+      appData.isAdmin = false;
+      elements.currentParticipantName.textContent = `您好，${name}`;
+      elements.authSection.classList.add('hidden');
+      elements.participantSection.classList.remove('hidden');
+      elements.progressPanel.classList.remove('hidden');
+      showNotification('登录成功', 'success');
+      
+      // 检查是否有正在进行的选择
+      updateParticipantView();
+    });
+
+    // 退出登录
+    elements.logoutAdminBtn.addEventListener('click', () => {
+      appData.currentUser = null;
+      appData.isAdmin = false;
+      elements.adminPassword.value = '';
+      elements.adminSection.classList.add('hidden');
+      elements.authSection.classList.remove('hidden');
+      elements.adminAuth.classList.add('hidden');
+      elements.participantAuth.classList.add('hidden');
+      showNotification('已退出管理员账户', 'info');
+    });
+
+    elements.logoutParticipantBtn.addEventListener('click', () => {
+      appData.currentUser = null;
+      appData.isAdmin = false;
+      elements.participantName.value = '';
+      elements.participantSection.classList.add('hidden');
+      elements.progressPanel.classList.add('hidden');
+      elements.authSection.classList.remove('hidden');
+      elements.adminAuth.classList.add('hidden');
+      elements.participantAuth.classList.add('hidden');
+      showNotification('已退出', 'info');
+    });
+
+    // 奖品管理
+    elements.addPrizeBtn.addEventListener('click', () => {
+      const name = elements.prizeName.value.trim();
+      const quantity = parseInt(elements.prizeQuantity.value);
+      
+      if (!name) {
+        showNotification('请输入奖品名称', 'warning');
+        return;
+      }
+      
+      if (isNaN(quantity) || quantity < 1) {
+        showNotification('请输入有效的奖品数量', 'warning');
+        return;
+      }
+      
+      // 添加新奖品
+      const newPrize = {
+        id: Date.now(),
+        name,
+        totalQuantity: quantity,
+        remainingQuantity: quantity
+      };
+      
+      appData.prizes.push(newPrize);
+      renderPrizeList();
+      
+      // 清空表单
+      elements.prizeName.value = '';
+      elements.prizeQuantity.value = '1';
+      
+      showNotification(`已添加奖品：${name}`, 'success');
+    });
+
+    // 渲染奖品列表
+    function renderPrizeList() {
+      if (appData.prizes.length === 0) {
+        elements.prizeList.innerHTML = `
+          <div class="text-gray-500 text-center py-6 border border-dashed rounded-lg">
+            暂无奖品，请添加奖品
+          </div>
+        `;
+        return;
+      }
+      
+      elements.prizeList.innerHTML = appData.prizes.map(prize => `
+        <div class="flex justify-between items-center p-3 border border-gray-100 rounded-lg">
+          <div>
+            <div class="font-medium">${prize.name}</div>
+            <div class="text-sm text-gray-500">数量：${prize.remainingQuantity}/${prize.totalQuantity}</div>
+          </div>
+          <button class="text-danger hover:text-danger/80 transition-smooth" onclick="deletePrize(${prize.id})">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // 删除奖品
+    function deletePrize(id) {
+      appData.prizes = appData.prizes.filter(prize => prize.id !== id);
+      renderPrizeList();
+      showNotification('奖品已删除', 'info');
+    }
+
+    // 排名管理
+    elements.addRankBtn.addEventListener('click', () => {
+      const position = parseInt(elements.rankPosition.value);
+      const name = elements.rankName.value.trim();
+      
+      if (isNaN(position) || position < 1) {
+        showNotification('请输入有效的排名', 'warning');
+        return;
+      }
+      
+      if (!name) {
+        showNotification('请输入姓名', 'warning');
+        return;
+      }
+      
+      // 检查排名是否已存在
+      const existingRank = appData.ranks.find(rank => rank.position === position);
+      if (existingRank) {
+        // 更新现有排名
+        existingRank.name = name;
+      } else {
+        // 添加新排名
+        appData.ranks.push({
+          id: Date.now(),
+          position,
+          name,
+          hasSelected: false,
+          selectedPrize: null
+        });
+      }
+      
+      // 按排名排序
+      appData.ranks.sort((a, b) => a.position - b.position);
+      renderRankList();
+      
+      // 清空表单
+      elements.rankPosition.value = (position + 1).toString();
+      elements.rankName.value = '';
+      
+      showNotification(`已添加排名 ${position}：${name}`, 'success');
+    });
+
+    // 渲染排名列表
+    function renderRankList() {
+      if (appData.ranks.length === 0) {
+        elements.rankList.innerHTML = `
+          <div class="text-gray-500 text-center py-6 border border-dashed rounded-lg">
+            暂无排名，请添加排名
+          </div>
+        `;
+        return;
+      }
+      
+      elements.rankList.innerHTML = appData.ranks.map(rank => `
+        <div class="flex justify-between items-center p-3 border border-gray-100 rounded-lg">
+          <div>
+            <div class="font-medium">第 ${rank.position} 名：${rank.name}</div>
+            <div class="text-sm text-gray-500">
+              ${rank.hasSelected ? `已选择：${rank.selectedPrize || '未知奖品'}` : '未选择'}
+            </div>
+          </div>
+          <button class="text-danger hover:text-danger/80 transition-smooth" onclick="deleteRank(${rank.id})">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // 删除排名
+    function deleteRank(id) {
+      appData.ranks = appData.ranks.filter(rank => rank.id !== id);
+      renderRankList();
+      showNotification('排名已删除', 'info');
+    }
+
+    // 开始选择流程
+    elements.startSelectionBtn.addEventListener('click', () => {
+      if (appData.prizes.length === 0) {
+        showNotification('请先添加奖品', 'warning');
+        return;
+      }
+      
+      if (appData.ranks.length === 0) {
+        showNotification('请先添加排名', 'warning');
+        return;
+      }
+      
+      appData.selectionInProgress = true;
+      appData.currentSelectorIndex = 0;
+      
+      // 重置选择状态
+      appData.ranks.forEach(rank => {
+        rank.hasSelected = false;
+        rank.selectedPrize = null;
+      });
+      
+      renderRankList();
+      updateProgressPanel();
+      
+      showNotification('礼品选择流程已开始', 'success');
+      
+      // 通知当前选择者
+      const currentSelector = appData.ranks[appData.currentSelectorIndex];
+      if (currentSelector) {
+        showNotification(`请第 ${currentSelector.position} 名 ${currentSelector.name} 进行选择`, 'info');
+      }
+    });
+
+    // 更新参与者视图
+    function updateParticipantView() {
+      if (!appData.selectionInProgress) {
+        elements.statusMessage.textContent = '等待管理员开始选择流程...';
+        elements.prizeSelectionArea.classList.add('hidden');
+        updateProgressPanel();
+        return;
+      }
+      
+      // 检查当前是否是当前用户的选择轮次
+      const currentSelector = appData.ranks[appData.currentSelectorIndex];
+      const isCurrentUserTurn = currentSelector && currentSelector.name === appData.currentUser;
+      
+      if (isCurrentUserTurn) {
+        elements.statusMessage.textContent = `当前轮到您选择礼品（第 ${currentSelector.position} 名）`;
+        elements.selectionStatus.classList.add('bg-primary/10');
+        elements.selectionStatus.classList.remove('bg-light', 'bg-warning/10');
+        elements.prizeSelectionArea.classList.remove('hidden');
+        renderAvailablePrizes();
+      } else if (appData.currentSelectorIndex < appData.ranks.length) {
+        const nextSelector = appData.ranks[appData.currentSelectorIndex];
+        elements.statusMessage.textContent = `等待第 ${nextSelector.position} 名 ${nextSelector.name} 选择...`;
+        elements.selectionStatus.classList.add('bg-light');
+        elements.selectionStatus.classList.remove('bg-primary/10', 'bg-warning/10');
+        elements.prizeSelectionArea.classList.add('hidden');
+      } else {
+        elements.statusMessage.textContent = '所有参与者已完成选择！';
+        elements.selectionStatus.classList.add('bg-success/10');
+        elements.selectionStatus.classList.remove('bg-primary/10', 'bg-light', 'bg-warning/10');
+        elements.prizeSelectionArea.classList.add('hidden');
+      }
+      
+      updateProgressPanel();
+      renderSelectedPrizes();
+    }
+
+    // 渲染可用奖品
+    function renderAvailablePrizes() {
+      const availablePrizes = appData.prizes.filter(prize => prize.remainingQuantity > 0);
+      
+      if (availablePrizes.length === 0) {
+        elements.availablePrizes.innerHTML = `
+          <div class="col-span-full text-center py-6 bg-light rounded-lg text-gray-500">
+            暂无可用奖品
+          </div>
+        `;
+        return;
+      }
+      
+      elements.availablePrizes.innerHTML = availablePrizes.map(prize => `
+        <div class="border border-gray-200 rounded-lg p-4 hover:border-primary hover:shadow-md transition-smooth cursor-pointer" onclick="selectPrize(${prize.id})">
+          <div class="font-medium mb-1">${prize.name}</div>
+          <div class="text-sm text-gray-500">剩余数量：${prize.remainingQuantity}/${prize.totalQuantity}</div>
+        </div>
+      `).join('');
+    }
+
+    // 选择奖品
+    function selectPrize(prizeId) {
+      const currentSelector = appData.ranks[appData.currentSelectorIndex];
+      
+      // 检查是否是当前用户的轮次
+      if (!currentSelector || currentSelector.name !== appData.currentUser) {
+        showNotification('还没到您的选择轮次', 'warning');
+        return;
+      }
+      
+      // 查找奖品
+      const prize = appData.prizes.find(p => p.id === prizeId);
+      if (!prize || prize.remainingQuantity <= 0) {
+        showNotification('该奖品已被选完', 'error');
+        return;
+      }
+      
+      // 减少奖品数量
+      prize.remainingQuantity--;
+      
+      // 更新选择状态
+      currentSelector.hasSelected = true;
+      currentSelector.selectedPrize = prize.name;
+      
+      showNotification(`您已选择：${prize.name}`, 'success');
+      
+      // 移动到下一位选择者
+      appData.currentSelectorIndex++;
+      
+      // 如果还有下一位选择者，通知
+      if (appData.currentSelectorIndex < appData.ranks.length) {
+        const nextSelector = appData.ranks[appData.currentSelectorIndex];
+        showNotification(`请第 ${nextSelector.position} 名 ${nextSelector.name} 进行选择`, 'info');
+      } else {
+        showNotification('所有参与者已完成选择！', 'success');
+      }
+      
+      // 更新视图
+      updateParticipantView();
+    }
+
+    // 渲染已选择的奖品列表
+    function renderSelectedPrizes() {
+      const selected = appData.ranks.filter(rank => rank.hasSelected);
+      
+      if (selected.length === 0) {
+        elements.selectedPrizes.innerHTML = `
+          <div class="text-gray-500 text-center py-4 border border-dashed rounded-lg">
+            暂无选择记录
+          </div>
+        `;
+        return;
+      }
+      
+      elements.selectedPrizes.innerHTML = selected.map(rank => `
+        <div class="p-2 border-b border-gray-100 last:border-0">
+          <div class="flex justify-between">
+            <span>第 ${rank.position} 名 ${rank.name}</span>
+            <span class="font-medium">${rank.selectedPrize}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 更新进度面板
+    function updateProgressPanel() {
+      if (appData.ranks.length === 0) {
+        elements.progressList.innerHTML = `
+          <div class="text-gray-500 text-center py-4 border border-dashed rounded-lg">
+            暂无排名信息
+          </div>
+        `;
+        return;
+      }
+      
+      elements.progressList.innerHTML = appData.ranks.map((rank, index) => {
+        let statusClass = '';
+        let statusText = '';
+        
+        if (rank.hasSelected) {
+          statusClass = 'text-success';
+          statusText = `<i class="fa fa-check-circle mr-1"></i>已选择：${rank.selectedPrize}`;
+        } else if (index === appData.currentSelectorIndex && appData.selectionInProgress) {
+          statusClass = 'text-primary font-medium';
+          statusText = `<i class="fa fa-hourglass-half mr-1"></i>正在选择`;
+        } else {
+          statusClass = 'text-gray-400';
+          statusText = `<i class="fa fa-clock-o mr-1"></i>等待选择`;
+        }
+        
+        return `
+          <div class="flex justify-between items-center p-2 border-b border-gray-100 last:border-0">
+            <div>
+              <span class="font-medium">第 ${rank.position} 名</span>
+              <span class="ml-2 text-gray-600">${rank.name}</span>
+            </div>
+            <span class="${statusClass}">${statusText}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 定时检查更新（模拟实时更新）
+    setInterval(() => {
+      if (!appData.isAdmin && appData.currentUser) {
+        updateParticipantView();
+      }
+    }, 3000);
+
+    // 初始化
+    renderPrizeList();
+    renderRankList();
+    updateProgressPanel();
+  </script>
+</body>
+</html>
